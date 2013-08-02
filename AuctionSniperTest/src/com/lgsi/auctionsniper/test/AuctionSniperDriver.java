@@ -15,4 +15,5 @@ public class AuctionSniperDriver {
 		final String statusText = solo.getString(resId);
 		new TextViewAsserts(solo, R.id.sniper_status).hasText(statusText);
 	}
+	
 }

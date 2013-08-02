@@ -15,10 +15,13 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements AuctionSniperListener {
 
     private Button joinButton;
 	private TextView sniperStatus;
+	private Chat chat;
+	public static final String AUCTION_COMMAND_JOIN_FORMAT = "SOLVersion: 1.1; Command: JOIN;";
+	public static final String AUCTION_COMMAND_BID_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +50,15 @@ public class MainActivity extends Activity {
     }
 
     private void join() throws XMPPException {
-		ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration("10.168.145.78", 5222);
+		ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration("10.168.148.72", 5222);
 		XMPPConnection connection = new XMPPConnection(connectionConfiguration);
 		connection.connect();
 		connection.login("sniper", "sniper", "Auction");
-		Chat chat = connection.getChatManager().createChat("auction-item-54321@localhost", new MessageListener() {
-			@Override
-			public void processMessage(Chat arg0, Message arg1) {
-				sniperStatus.setText(R.string.status_lost);
-			}
-		});
-		chat.sendMessage(new Message());
+
+		chat = connection.getChatManager().createChat("auction-item-54321@localhost", null);
+		XMPPAuction auction = new XMPPAuction(chat);
+		chat.addMessageListener(new AuctionMessageTranslater(new AuctionSniper(this, auction)));
+		auction.join();
     }
 
     @Override
@@ -66,5 +67,25 @@ public class MainActivity extends Activity {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
+	@Override
+	public void sniperLost() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				sniperStatus.setText(R.string.status_lost);		
+			}
+		});
+	}
+
+	@Override
+	public void sniperBidding() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				sniperStatus.setText(R.string.status_bidding);
+			}
+		});
+	}
     
 }

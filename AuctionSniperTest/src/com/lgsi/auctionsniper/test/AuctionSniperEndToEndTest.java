@@ -21,10 +21,25 @@ public class AuctionSniperEndToEndTest extends
 	public void testSniperJoinsAuctionUntilAuctionCloses() throws Exception {
 		auction.startSellingItem();
 		application.startBiddingIn(auction);
-		auction.hasReceivedJoinRequestFromSniper();
+		auction.hasReceivedJoinRequestFromSniper(application.BIDDER_ID);
 		auction.announceClosed();
 		application.showsSniperHasLostAuction();
 	}
+
+	
+	public void testSniperJoinsAuctionAndBidsButLoses() throws Exception {
+		auction.startSellingItem();
+		application.startBiddingIn(auction);
+		auction.hasReceivedJoinRequestFromSniper(application.BIDDER_ID);
+		
+		auction.reportPrice(192, 7, "Last Bidder");
+		application.showsSniperIsBidding();
+		auction.hasReceivedBid(199, application.BIDDER_ID);
+		
+		auction.announceClosed();
+		application.showsSniperHasLostAuction();
+	}
+
 
 	@Override
 	public void tearDown() throws Exception {
